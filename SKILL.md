@@ -1,13 +1,13 @@
 ---
 name: a-share-market-watch
-description: A-share/A股 market monitoring, 盘中监测, 盘中汇报, 盯盘, 重新预测, 明日预测, 看走势, 看板块, 板块趋势, 短期趋势, 中期趋势, 长期趋势, 5/10/20/60/120/250日趋势, 选股, 股票推荐, 候选股排序, 买入前检查, 能不能买, 可买性检查, 主力资金, 机构资金, 散户资金, 大单流入流出, 资金流, 龙虎榜, 融资融券, 最新新闻, 利好利空, 公告政策, 舆情情绪, and conditional trade-assist predictions for Chinese stocks. Use for themes such as 创新药/CXO/医药, 半导体/芯片/存储/封测, 机器人/人形机器人, AI算力/液冷/数据中心, 游戏/传媒, 贵金属/黄金, 电力/煤炭, 商业航天/军工, 传统消费/白酒/家电, 大金融/银行/券商/保险. Trigger when the user says 现在汇报, 重新分析, 给出预测, 看主力, 看新闻, 哪些值得关注, 哪些可以买, 明天买什么, or asks to rank A股 watchlists while real orders remain manual.
+description: A-share/A股 market monitoring, 盘中监测, 盘中汇报, 盯盘, 重新预测, 明日预测, 看走势, 看板块, 板块趋势, 短期趋势, 中期趋势, 长期趋势, 5/10/20/60/120/250日趋势, 预测依据, 真实依据, 上涨依据, 下跌依据, 为什么上涨, 为什么下跌, 选股, 股票推荐, 候选股排序, 买入前检查, 能不能买, 可买性检查, 主力资金, 机构资金, 散户资金, 大单流入流出, 资金流, 龙虎榜, 融资融券, 最新新闻, 利好利空, 公告政策, 舆情情绪, and conditional trade-assist predictions for Chinese stocks. Use for themes such as 创新药/CXO/医药, 半导体/芯片/存储/封测, 机器人/人形机器人, AI算力/液冷/数据中心, 游戏/传媒, 贵金属/黄金, 电力/煤炭, 商业航天/军工, 传统消费/白酒/家电, 大金融/银行/券商/保险. Trigger when the user says 现在汇报, 重新分析, 给出预测, 看主力, 看新闻, 哪些值得关注, 哪些可以买, 明天买什么, or asks to rank A股 watchlists while real orders remain manual.
 ---
 
 # A-Share Market Watch
 
 ## Purpose
 
-Use this skill to produce disciplined A-share monitoring reports and conditional predictions. The workflow must combine real-time price action, sector/theme strength, short/medium/long-term sector trends, public fund-flow proxies, latest news or policy, sentiment spread, and buyability checks before ranking stocks.
+Use this skill to produce disciplined A-share monitoring reports and conditional predictions. The workflow must combine real-time price action, sector/theme strength, short/medium/long-term sector trends, public fund-flow proxies, latest news or policy, sentiment spread, and buyability checks before ranking stocks. Every directional prediction must include real evidence and the reasoning chain behind why the stock or sector may rise, fall, or stay uncertain.
 
 Do not place, stage, or automate real orders. Assume the user executes trades manually outside Codex.
 
@@ -66,6 +66,9 @@ Trigger this skill for Chinese requests like:
    - Separately identify sentiment source stocks, popularity-board leaders, social-media narratives, and meme/low-price spillover paths; do not confuse sentiment spread with fundamental sector catalysts.
 9. Rank and predict:
    - Prefer names where theme strength, multi-horizon trend, price action, flow proxy, news/sentiment, and buyability align.
+   - For every upward or downward prediction, print the evidence chain: observed fact, source or timestamp, why it supports the direction, and what contrary evidence would invalidate it.
+   - Separate facts from inference. Use labels such as `事实`, `推断`, `反向证据`, and `证据强度`.
+   - If evidence is mixed or weak, say `证据不足，暂不预测方向` instead of forcing a bullish or bearish call.
    - Use conditional predictions only: base case, upside trigger, invalidation trigger.
    - Avoid certainty language and avoid "must buy" phrasing.
 
@@ -82,6 +85,9 @@ Every stock line must include:
 - `可买性`: normal, permission-needed, blocked, or caution
 - `推荐动作`: active focus, wait for pullback, monitor only, avoid chasing, permission blocked
 - `预测`: conditional base case
+- `真实依据`: concrete evidence for the predicted direction, including data source/timestamp and why it matters
+- `反向证据`: what conflicts with the prediction or would make it wrong
+- `证据强度`: strong, medium, weak, or insufficient
 - `触发条件`: what confirms upside
 - `失效条件`: what invalidates the idea
 
@@ -114,6 +120,7 @@ Always print units next to numeric money and flow fields. Do not output bare val
 - In weak index regimes, rank defensive strength higher: 创新药, 贵金属, 传统消费, 银行/保险 can outrank high-beta technology.
 - In strong risk-on regimes, allow 半导体、AI算力、液冷、机器人 to move up only if sector breadth and flows confirm.
 - Do not upgrade a stock only because its sector is strong intraday. If the sector's 60/120/250-day trend is still weak, mark the idea as rebound/repair unless it breaks above key medium-term levels with breadth and volume confirmation.
+- Do not write `看涨`, `看跌`, `上涨概率大`, or `下跌风险大` without real evidence in the same line. Directional language must be backed by quote data, trend data, flow proxy, verified news, sentiment evidence, or a clearly stated combination.
 - If fund-flow proxies are slow, run them on the top 5-10 candidates only and state the limitation.
 
 ## Safety

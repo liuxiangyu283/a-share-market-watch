@@ -14,6 +14,7 @@ It is designed for Chinese-language requests such as A股盯盘, 盘中汇报, �
 - Separates sentiment-driven moves from fundamental/news catalysts, including popularity-board, social-media, and low-price spillover chains.
 - Labels buyability issues such as ST, suspension, near limit-up, liquidity, ChiNext, STAR Market, or BSE permissions.
 - Produces sector-labeled predictions with trigger and invalidation conditions.
+- Requires every bullish or bearish prediction to include a concrete evidence chain: observed facts, source/timestamp, reasoning, contrary evidence, and evidence strength.
 - Requires money and flow units such as 元, 万元, 亿元, and 元/100股.
 
 ## What It Does Not Do
