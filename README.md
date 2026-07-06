@@ -8,8 +8,10 @@ It is designed for Chinese-language requests such as A股盯盘, 盘中汇报, �
 
 - Refreshes real-time quotes for A-share candidates.
 - Checks sector and theme strength before ranking stocks.
+- Checks recent and long-term sector trends before predicting: 5/10/20-day short-term momentum, 60-day medium trend, and 120/250-day long-term context where data is available.
 - Uses public fund-flow proxies such as tick flow, big-deal flow, margin data, and LHB when available.
 - Reads latest public news, policy, and company announcement context.
+- Separates sentiment-driven moves from fundamental/news catalysts, including popularity-board, social-media, and low-price spillover chains.
 - Labels buyability issues such as ST, suspension, near limit-up, liquidity, ChiNext, STAR Market, or BSE permissions.
 - Produces sector-labeled predictions with trigger and invalidation conditions.
 - Requires money and flow units such as 元, 万元, 亿元, and 元/100股.
@@ -81,4 +83,3 @@ On Windows with Chinese text, set UTF-8 mode first:
 ```powershell
 $env:PYTHONUTF8='1'
 ```
-

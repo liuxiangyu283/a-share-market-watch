@@ -1,13 +1,13 @@
 ---
 name: a-share-market-watch
-description: A-share/A股 market monitoring, 盘中监测, 盘中汇报, 盯盘, 重新预测, 明日预测, 看走势, 看板块, 选股, 股票推荐, 候选股排序, 买入前检查, 能不能买, 可买性检查, 主力资金, 机构资金, 散户资金, 大单流入流出, 资金流, 龙虎榜, 融资融券, 最新新闻, 利好利空, 公告政策, 舆情情绪, and conditional trade-assist predictions for Chinese stocks. Use for themes such as 创新药/CXO/医药, 半导体/芯片/存储/封测, 机器人/人形机器人, AI算力/液冷/数据中心, 游戏/传媒, 贵金属/黄金, 电力/煤炭, 商业航天/军工, 传统消费/白酒/家电, 大金融/银行/券商/保险. Trigger when the user says 现在汇报, 重新分析, 给出预测, 看主力, 看新闻, 哪些值得关注, 哪些可以买, 明天买什么, or asks to rank A股 watchlists while real orders remain manual.
+description: A-share/A股 market monitoring, 盘中监测, 盘中汇报, 盯盘, 重新预测, 明日预测, 看走势, 看板块, 板块趋势, 短期趋势, 中期趋势, 长期趋势, 5/10/20/60/120/250日趋势, 选股, 股票推荐, 候选股排序, 买入前检查, 能不能买, 可买性检查, 主力资金, 机构资金, 散户资金, 大单流入流出, 资金流, 龙虎榜, 融资融券, 最新新闻, 利好利空, 公告政策, 舆情情绪, and conditional trade-assist predictions for Chinese stocks. Use for themes such as 创新药/CXO/医药, 半导体/芯片/存储/封测, 机器人/人形机器人, AI算力/液冷/数据中心, 游戏/传媒, 贵金属/黄金, 电力/煤炭, 商业航天/军工, 传统消费/白酒/家电, 大金融/银行/券商/保险. Trigger when the user says 现在汇报, 重新分析, 给出预测, 看主力, 看新闻, 哪些值得关注, 哪些可以买, 明天买什么, or asks to rank A股 watchlists while real orders remain manual.
 ---
 
 # A-Share Market Watch
 
 ## Purpose
 
-Use this skill to produce disciplined A-share monitoring reports and conditional predictions. The workflow must combine real-time price action, sector/theme strength, public fund-flow proxies, latest news or policy, and buyability checks before ranking stocks.
+Use this skill to produce disciplined A-share monitoring reports and conditional predictions. The workflow must combine real-time price action, sector/theme strength, short/medium/long-term sector trends, public fund-flow proxies, latest news or policy, sentiment spread, and buyability checks before ranking stocks.
 
 Do not place, stage, or automate real orders. Assume the user executes trades manually outside Codex.
 
@@ -27,7 +27,7 @@ Trigger this skill for Chinese requests like:
 - Avoid Eastmoney/Dongfangcaifu endpoints by default unless the user explicitly requests them or confirms working access.
 - Prefer verified non-Eastmoney sources:
   - Real-time quotes: Sina batch quote, Tencent batch quote.
-  - Trend/history: Tencent daily history.
+  - Trend/history: Tencent daily history, sector/index daily series when available, and recent highs/lows or moving-average context.
   - Sector/theme strength: TongHuaShun industry summary and concept index data.
   - Fund-flow proxies: Tencent tick flow, TongHuaShun big-deal flow, exchange margin data, Sina LHB when relevant.
   - News: company announcements, exchange disclosures, regulator policy, 财联社, 证券时报, 上海证券报, 中国证券报, 科创板日报.
@@ -46,20 +46,26 @@ Trigger this skill for Chinese requests like:
 3. Measure sector/theme strength:
    - Rank TongHuaShun industries by 涨跌幅, 总成交额, 净流入, 上涨/下跌家数, 领涨股.
    - Compare user themes against the whole market; do not promote a stock if its theme is weak unless it is explicitly a defensive name.
-4. Refresh candidate quotes:
+4. Assess multi-horizon trend before predicting:
+   - For every focus sector/theme, check at least recent, medium, and long-term direction when data is available: 5/10/20-day for short-term momentum, 60-day for medium trend, and 120/250-day for long-term trend.
+   - Compare current price or sector index against moving averages, recent 20/60/120-day highs and lows, and relative strength versus major indexes.
+   - Label the sector as trend-up, rebound-in-downtrend, range-bound, weakening, or trend-down. Do not treat a one-day spike as a durable trend unless it also improves the medium-term structure.
+   - If a sector is long-term down but intraday strong, describe it as 情绪反弹 or 趋势修复待确认 rather than a confirmed main trend.
+5. Refresh candidate quotes:
    - For every candidate collect price, change percent, high/low, amount, timestamp, intraday position, and minimum cash for 100 shares.
-5. Check buyability:
+6. Check buyability:
    - Flag 创业板 `300/301`, 科创板 `688/689`, 北交所 `4/8/920` as permission-needed unless the user has confirmed access.
    - Flag ST/*ST, suspension/no quote, near limit-up, very low amount/liquidity, and excessive chase risk.
-6. Check fund-flow proxies:
+7. Check fund-flow proxies:
    - Use Tencent tick buy/sell net for a small focus list.
    - Use TongHuaShun big-deal net when available.
    - If tick flow and big-deal flow conflict, call it 分歧 instead of forcing a bullish/bearish label.
-7. Check latest news and macro/policy:
+8. Check latest news, macro/policy, and sentiment:
    - Identify direct company catalysts, sector news, policy support/headwind, and market liquidity context.
    - Weight direct announcements and official/premium financial news higher than social chatter.
-8. Rank and predict:
-   - Prefer names where theme strength, price action, flow proxy, news, and buyability align.
+   - Separately identify sentiment source stocks, popularity-board leaders, social-media narratives, and meme/low-price spillover paths; do not confuse sentiment spread with fundamental sector catalysts.
+9. Rank and predict:
+   - Prefer names where theme strength, multi-horizon trend, price action, flow proxy, news/sentiment, and buyability align.
    - Use conditional predictions only: base case, upside trigger, invalidation trigger.
    - Avoid certainty language and avoid "must buy" phrasing.
 
@@ -70,6 +76,7 @@ Every stock line must include:
 - `code` and `name`
 - `板块/主题`
 - `当前价` and `涨跌幅`
+- `板块趋势`: short/medium/long-term sector trend and whether the move is trend continuation, range rebound, or sentiment spike
 - `资金流代理`: tick flow, big-deal flow, or unavailable with reason
 - `新闻/消息判断`
 - `可买性`: normal, permission-needed, blocked, or caution
@@ -106,6 +113,7 @@ Always print units next to numeric money and flow fields. Do not output bare val
 - 10-minute refresh is reasonable during active monitoring; refresh faster only for a very small focus list.
 - In weak index regimes, rank defensive strength higher: 创新药, 贵金属, 传统消费, 银行/保险 can outrank high-beta technology.
 - In strong risk-on regimes, allow 半导体、AI算力、液冷、机器人 to move up only if sector breadth and flows confirm.
+- Do not upgrade a stock only because its sector is strong intraday. If the sector's 60/120/250-day trend is still weak, mark the idea as rebound/repair unless it breaks above key medium-term levels with breadth and volume confirmation.
 - If fund-flow proxies are slow, run them on the top 5-10 candidates only and state the limitation.
 
 ## Safety

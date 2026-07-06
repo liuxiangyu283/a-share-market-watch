@@ -1,4 +1,4 @@
 interface:
   display_name: "A-Share Market Watch"
-  short_description: "A-share watchlists with flow, news, and buyability checks."
+  short_description: "A-share watchlists with trend, flow, news, sentiment, and buyability checks."
   default_prompt: "Use $a-share-market-watch to refresh my A-share watchlist and give sector-labeled predictions."
