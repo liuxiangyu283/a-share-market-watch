@@ -15,6 +15,7 @@ It is designed for Chinese-language requests such as A股盯盘, 盘中汇报, �
 - Labels buyability issues such as ST, suspension, near limit-up, liquidity, ChiNext, STAR Market, or BSE permissions.
 - Produces sector-labeled predictions with trigger and invalidation conditions.
 - Requires every bullish or bearish prediction to include a concrete evidence chain: observed facts, source/timestamp, reasoning, contrary evidence, and evidence strength.
+- Adds conditional buy timing and sell/exit timing, while leaving all real execution to the user.
 - Requires money and flow units such as 元, 万元, 亿元, and 元/100股.
 
 ## What It Does Not Do
