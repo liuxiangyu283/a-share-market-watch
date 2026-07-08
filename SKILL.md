@@ -145,6 +145,48 @@ Use separate buckets in the final answer:
 
 If another sector is judged better than the user-mentioned sector, explicitly say why using the same fields. If confidence is only medium or low, mark it. Do not imply other sector calls are automatically correct just because one theme call was fixed.
 
+## Calibrated Probability Model
+
+Use the point-score model only as a raw signal. Treat its output as `raw_score`, not a fully reliable statistical probability.
+
+When data is available, improve probability estimates with a calibrated ensemble:
+
+1. Build raw direction signals:
+   - Cross-sectional relative strength versus the fixed focus universe and major indexes.
+   - Short-horizon momentum: 1/3/5/10/20-day return, breakout, and distance from recent highs.
+   - Medium trend: 20/60/120/250-day moving average structure.
+   - Theme breadth: rising count, average change, leader count, and成交额 concentration.
+   - Volume/liquidity: amount, turnover expansion, and volume ratio versus recent average.
+   - Price quality: intraday position, limit-up/limit-down state, gap, and fade risk.
+   - Catalyst: verified earnings, order/news/policy catalyst, or sentiment leadership.
+   - TradingAgents overlay: rating, entry, stop, and target when available.
+2. Convert raw signals to a probability only after calibration:
+   - Start with logistic-style mapping from raw score to probability instead of treating score points as exact probability.
+   - If historical prediction outcomes are available, calibrate with Platt scaling or isotonic-style bucket calibration.
+   - Track Brier score and log loss for every prediction batch. Lower Brier/log loss means better probability quality.
+   - Report whether a probability is `uncalibrated`, `bucket-calibrated`, or `backtest-calibrated`.
+3. Evaluate hit quality by buckets, not only one-day hit rate:
+   - `55-60%`, `60-65%`, `65-70%`, `70%+`.
+   - For each bucket, compare predicted probability with realized direction frequency.
+   - If a bucket is overconfident or underconfident, adjust future probabilities.
+
+Use a rule-based fallback only when historical samples are insufficient. In that fallback, label probabilities as `uncalibrated-rule-score`.
+
+## Expected Move Model
+
+Do not estimate predicted upside/downside only from fixed rule offsets. Use volatility and price structure:
+
+- Calculate ATR or true-range based volatility from recent daily data when available.
+- Convert ATR to percent: `ATR_pct = ATR / close * 100`.
+- Estimate upside/downside as scenario ranges:
+  - `强主线`: upside often `0.8-1.3 * ATR_pct`; downside depends on chase/fade risk, often `1.0-1.5 * ATR_pct`.
+  - `稳健低吸`: upside often `0.5-0.9 * ATR_pct`; downside often `0.7-1.1 * ATR_pct`.
+  - `弱板块/回避`: upside should be capped unless a reversal trigger appears; downside should use at least `1.0 * ATR_pct`.
+- Anchor ranges to nearby support/resistance, previous high/low, limit-up/limit-down, moving averages, and entry trigger.
+- For A-shares, account for涨跌停、T+1、开板换手、一字板买不到、创业板/科创板/北交所权限, and liquidity.
+
+When printing `预测上涨幅度/预测下跌幅度`, state whether it comes from `ATR/volatility`, `support-resistance`, or `rule fallback`.
+
 ## Output Contract
 
 Every stock line must include:

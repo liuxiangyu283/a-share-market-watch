@@ -19,6 +19,8 @@ It is designed for Chinese-language requests such as A股盯盘, 盘中汇报, �
 - Applies risk gates for weak theme breadth, intraday fade, weakening trend, chase risk, and TradingAgents coverage before assigning action labels.
 - Separates sector direction from entry action so a strong theme can remain a `strong mainline` while an extended leader is labeled `turnover confirmation` or `wait for pullback`.
 - Calibrates offensive mainlines against defensive/value sectors before ranking, so stable low-volatility names do not hide a stronger short-term theme.
+- Treats point scores as raw signals, then improves probability estimates through calibration buckets, Brier/log-loss review, and historical prediction feedback when available.
+- Estimates predicted upside/downside with ATR or true-range volatility plus support/resistance context instead of relying only on fixed rule offsets.
 - Requires every bullish or bearish prediction to include a concrete evidence chain: observed facts, source/timestamp, reasoning, contrary evidence, and evidence strength.
 - Adds conditional buy timing and sell/exit timing, while leaving all real execution to the user.
 - Creates Markdown/JSON prediction baselines for next-day accuracy reviews when useful, but does not write Excel unless explicitly requested.
