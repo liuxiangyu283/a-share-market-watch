@@ -14,8 +14,12 @@ It is designed for Chinese-language requests such as A股盯盘, 盘中汇报, �
 - Separates sentiment-driven moves from fundamental/news catalysts, including popularity-board, social-media, and low-price spillover chains.
 - Labels buyability issues such as ST, suspension, near limit-up, liquidity, ChiNext, STAR Market, or BSE permissions.
 - Produces sector-labeled predictions with trigger and invalidation conditions.
+- Includes next-session up/down probability, 3-5 trading-day up/down probability, and predicted upside/downside range.
+- Uses TradingAgents as an auxiliary overlay when local logs or runs are available, and still prints `agent_missing` or `agent_error` when coverage is unavailable.
+- Applies risk gates for weak theme breadth, intraday fade, weakening trend, chase risk, and TradingAgents coverage before assigning action labels.
 - Requires every bullish or bearish prediction to include a concrete evidence chain: observed facts, source/timestamp, reasoning, contrary evidence, and evidence strength.
 - Adds conditional buy timing and sell/exit timing, while leaving all real execution to the user.
+- Creates Markdown/JSON prediction baselines for next-day accuracy reviews when useful, but does not write Excel unless explicitly requested.
 - Requires money and flow units such as 元, 万元, 亿元, and 元/100股.
 
 ## What It Does Not Do
@@ -23,6 +27,7 @@ It is designed for Chinese-language requests such as A股盯盘, 盘中汇报, �
 - It does not place, stage, submit, or automate brokerage orders.
 - It does not ask for brokerage passwords, OTPs, account credentials, or private order screens.
 - It does not treat public "main force", "institution", or "retail" flow labels as verified account-level trading.
+- It does not update Excel workbooks by default.
 - It is not investment advice. Use it as a research and monitoring workflow only.
 
 ## Data Source Defaults
@@ -70,6 +75,10 @@ Chinese examples:
 
 ```text
 明天买什么？重点看机器人、半导体、存储、创新药、AI算力、液冷、传统消费和大金融。
+```
+
+```text
+重新分析预测，排除创业板和科创板，列出明日涨跌概率、未来3-5日概率、预测涨跌幅，并保存明天复盘对照底稿。
 ```
 
 ## Validation

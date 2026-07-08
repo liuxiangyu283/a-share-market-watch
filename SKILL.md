@@ -1,6 +1,6 @@
 ---
 name: a-share-market-watch
-description: A-share/A股 market monitoring, 盘中监测, 盘中汇报, 盯盘, 重新预测, 明日预测, 看走势, 看板块, 板块趋势, 短期趋势, 中期趋势, 长期趋势, 5/10/20/60/120/250日趋势, 预测依据, 真实依据, 上涨依据, 下跌依据, 为什么上涨, 为什么下跌, 买入时机, 卖出时机, 买点, 卖点, 退出条件, 止盈止损, 选股, 股票推荐, 候选股排序, 买入前检查, 能不能买, 可买性检查, 主力资金, 机构资金, 散户资金, 大单流入流出, 资金流, 龙虎榜, 融资融券, 最新新闻, 利好利空, 公告政策, 舆情情绪, and conditional trade-assist predictions for Chinese stocks. Use for themes such as 创新药/CXO/医药, 半导体/芯片/存储/封测, 机器人/人形机器人, AI算力/液冷/数据中心, 游戏/传媒, 贵金属/黄金, 电力/煤炭, 商业航天/军工, 传统消费/白酒/家电, 大金融/银行/券商/保险. Trigger when the user says 现在汇报, 重新分析, 给出预测, 看主力, 看新闻, 哪些值得关注, 哪些可以买, 明天买什么, or asks to rank A股 watchlists while real orders remain manual.
+description: A-share/A股 market monitoring, 盘中监测, 盘中汇报, 盯盘, 重新预测, 明日预测, 看走势, 看板块, 板块趋势, 短期趋势, 中期趋势, 长期趋势, 5/10/20/60/120/250日趋势, 预测依据, 真实依据, 上涨依据, 下跌依据, 为什么上涨, 为什么下跌, 买入时机, 卖出时机, 买点, 卖点, 退出条件, 止盈止损, 选股, 股票推荐, 候选股排序, 买入前检查, 能不能买, 可买性检查, 明日开盘可以买什么, 一周内涨跌预测, 预测上涨/下跌概率, 预测涨跌幅, TradingAgents辅助分析, 主力资金, 机构资金, 散户资金, 大单流入流出, 资金流, 龙虎榜, 融资融券, 最新新闻, 利好利空, 公告政策, 舆情情绪, prediction-vs-actual review, and conditional trade-assist predictions for Chinese stocks. Use for fixed focus themes such as 创新药/CXO/医药, 半导体/芯片/存储/封测, 机器人/人形机器人, AI算力/液冷/数据中心, 游戏/传媒, 贵金属/黄金, 电力/煤炭, 商业航天/军工, 传统消费/白酒/家电, 大金融/银行/券商/保险, 养殖/农业育种. Trigger when the user says 现在汇报, 重新分析, 给出预测, 看主力, 看新闻, 哪些值得关注, 哪些可以买, 明天买什么, 复盘准确率, or asks to rank A股 watchlists while real orders remain manual.
 ---
 
 # A-Share Market Watch
@@ -10,6 +10,17 @@ description: A-share/A股 market monitoring, 盘中监测, 盘中汇报, 盯盘,
 Use this skill to produce disciplined A-share monitoring reports and conditional predictions. The workflow must combine real-time price action, sector/theme strength, short/medium/long-term sector trends, public fund-flow proxies, latest news or policy, sentiment spread, and buyability checks before ranking stocks. Every directional prediction must include real evidence and the reasoning chain behind why the stock or sector may rise, fall, or stay uncertain.
 
 Do not place, stage, or automate real orders. Assume the user executes trades manually outside Codex.
+
+## Current User Defaults
+
+Apply these defaults unless the user explicitly changes scope in the current turn:
+
+- Use the fixed focus themes and watchlists from `configs/a-share-theme-monitor.json`; do not drift into a broad whole-market scan.
+- Exclude 创业板 `300/301`, 科创板 `688/689`, and 北交所 `4/8/920` candidates from buy lists when the user says not to consider them or has not re-enabled them.
+- Do not write Excel workbooks unless the user explicitly asks for Excel in the current turn. Markdown/JSON prediction baselines are acceptable when the user wants next-day accuracy review.
+- Always include `TradingAgents` as an auxiliary field for every candidate. Use local logs such as `analysis_output/tradingagents` when available; if unavailable, print `agent_missing` or `agent_error` instead of omitting the field.
+- Keep the answer actionable. When the user asks "哪些可以买" or "明天买什么", name the best buyable candidates first, then state the entry setup and invalidation; do not answer as a generic research report.
+- If a stock has continuation probability but poor entry quality, say so directly: e.g. `有继续涨可能，但不追高/等换手`.
 
 ## Chinese Trigger Coverage
 
@@ -56,15 +67,21 @@ Trigger this skill for Chinese requests like:
 6. Check buyability:
    - Flag 创业板 `300/301`, 科创板 `688/689`, 北交所 `4/8/920` as permission-needed unless the user has confirmed access.
    - Flag ST/*ST, suspension/no quote, near limit-up, very low amount/liquidity, and excessive chase risk.
-7. Check fund-flow proxies:
+7. Add TradingAgents overlay:
+   - Try to load or run the local TradingAgents analysis for the focused names. If full live runs are too slow, load the latest local logs and mark coverage.
+   - Include `agent_available`, `agent_missing`, or `agent_error` for every stock line.
+   - When available, include rating, trade date, entry, stop, and target/trigger from TradingAgents.
+   - Treat TradingAgents as an overlay, not the sole decision source: live quote, board strength, trend, flow, news, and buyability still decide ranking.
+   - Penalize missing/error coverage in scoring, but do not discard an otherwise strong setup solely because the agent log is missing.
+8. Check fund-flow proxies:
    - Use Tencent tick buy/sell net for a small focus list.
    - Use TongHuaShun big-deal net when available.
    - If tick flow and big-deal flow conflict, call it 分歧 instead of forcing a bullish/bearish label.
-8. Check latest news, macro/policy, and sentiment:
+9. Check latest news, macro/policy, and sentiment:
    - Identify direct company catalysts, sector news, policy support/headwind, and market liquidity context.
    - Weight direct announcements and official/premium financial news higher than social chatter.
    - Separately identify sentiment source stocks, popularity-board leaders, social-media narratives, and meme/low-price spillover paths; do not confuse sentiment spread with fundamental sector catalysts.
-9. Rank and predict:
+10. Rank and predict:
    - Prefer names where theme strength, multi-horizon trend, price action, flow proxy, news/sentiment, and buyability align.
    - For every upward or downward prediction, print the evidence chain: observed fact, source or timestamp, why it supports the direction, and what contrary evidence would invalidate it.
    - Separate facts from inference. Use labels such as `事实`, `推断`, `反向证据`, and `证据强度`.
@@ -72,6 +89,18 @@ Trigger this skill for Chinese requests like:
    - Give conditional timing only: recommended buy timing should be an entry setup such as pullback support, breakout confirmation, board confirmation, or sentiment continuation. Recommended sell/exit timing should include profit-taking, trend break, invalidation, or sentiment fade conditions.
    - Use conditional predictions only: base case, upside trigger, invalidation trigger.
    - Avoid certainty language and avoid "must buy" phrasing.
+
+## Latest Scoring Gates
+
+Use these risk gates when converting the evidence stack into buyability and probabilities:
+
+- Weak theme breadth gate: if a theme has negative average change with breadth below 50%, or breadth below 34%, mark `theme_weak`, cap next-session upside probability at `57%`, and force `monitor only` unless the user explicitly asks for speculative observation.
+- Intraday fade gate: if a stock is up at least `4%` but closes in the lower 35% of its intraday range, or pulls back at least `2.5%` from the intraday high, mark `intraday_fade_risk`, cap upside probability at `58%`, and avoid chase labels.
+- Weakening trend gate: if trend label is `weakening` and the stock is flat/down, cap upside probability at `52%`.
+- Chase-risk gate: if current-day gain is at least `7%`, or price is near the day high with gain at least `4%`, use `avoid chasing` unless there is a confirmed limit-up/leader continuation setup.
+- TradingAgents adjustment: `agent_missing` or `agent_error` should lower confidence; `Overweight/Buy` can add confidence; `Hold/Neutral` lowers confidence slightly; `Underweight/Sell` materially lowers confidence.
+- Probability range: keep routine short-horizon upside probability inside a realistic band unless evidence is exceptional. Do not inflate percentages just because the user asks for direct recommendations.
+- Separate probability from action: a stock can have high continuation probability but still be `avoid chasing` if entry quality is poor.
 
 ## Output Contract
 
@@ -81,6 +110,10 @@ Every stock line must include:
 - `板块/主题`
 - `当前价` and `涨跌幅`
 - `板块趋势`: short/medium/long-term sector trend and whether the move is trend continuation, range rebound, or sentiment spike
+- `明日上涨概率` and `明日下跌概率`
+- `未来3-5个交易日上涨概率` and `未来3-5个交易日下跌概率`
+- `预测上涨幅度` and `预测下跌幅度`
+- `TradingAgents`: agent_available/agent_missing/agent_error plus rating, entry, stop, and target/trigger when available
 - `资金流代理`: tick flow, big-deal flow, or unavailable with reason
 - `新闻/消息判断`
 - `可买性`: normal, permission-needed, blocked, or caution
@@ -93,8 +126,9 @@ Every stock line must include:
 - `证据强度`: strong, medium, weak, or insufficient
 - `触发条件`: what confirms upside
 - `失效条件`: what invalidates the idea
+- `复盘标签`: tags such as theme_top3, theme_weak, trend_up, trend_risk, intraday_fade_risk, chase_risk, agent_available, agent_missing
 
-Keep reports compact. Put the strongest actionable names first, then monitor-only names, then blocked or avoid-chasing names.
+Keep reports compact but complete. Put buyable or actionable names first, then high-probability-but-no-chase names, then monitor-only names, then blocked candidates. When the user says the prediction will be compared tomorrow, save or print a stable baseline containing trade date, target compare date, source timestamp, probabilities, predicted amplitude, action, trigger, invalidation, and tags.
 
 ## Units
 
@@ -117,6 +151,14 @@ Always print units next to numeric money and flow fields. Do not output bare val
 - `avoid chasing`: excessive intraday rise, weak board confirmation, or risk/reward deteriorated.
 - `permission blocked`: needs 创业板/科创板/北交所 access or otherwise cannot likely be bought.
 
+Use clear Chinese action labels in final answers when helpful:
+
+- `可积极关注`
+- `等回踩低吸`
+- `不追高/等换手`
+- `观察/暂不买`
+- `权限限制/不纳入`
+
 ## Practical Defaults
 
 - 10-minute refresh is reasonable during active monitoring; refresh faster only for a very small focus list.
@@ -126,6 +168,8 @@ Always print units next to numeric money and flow fields. Do not output bare val
 - Do not write `看涨`, `看跌`, `上涨概率大`, or `下跌风险大` without real evidence in the same line. Directional language must be backed by quote data, trend data, flow proxy, verified news, sentiment evidence, or a clearly stated combination.
 - Express buy and sell timing as conditional scenarios, not commands. Use phrasing like `若...则考虑`, `等...确认`, `跌破...退出观察`, and keep real execution manual.
 - If fund-flow proxies are slow, run them on the top 5-10 candidates only and state the limitation.
+- If Chinese text appears as `????` or mojibake in generated files, regenerate with UTF-8 output before using the file as the baseline.
+- For next-day accuracy review, compare each prediction against actual next-session close direction from the prediction timestamp or previous close. Separately score direction hit, trigger-hit, invalidation-hit, and action-label effectiveness.
 
 ## Safety
 
