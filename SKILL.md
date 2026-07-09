@@ -22,6 +22,7 @@ Apply these defaults unless the user explicitly changes scope in the current tur
 - Keep the answer actionable. When the user asks "哪些可以买" or "明天买什么", name the best buyable candidates first, then state the entry setup and invalidation; do not answer as a generic research report.
 - If a stock has continuation probability but poor entry quality, say so directly: e.g. `有继续涨可能，但不追高/等换手`.
 - Always separate `板块方向评级` from `买入动作`. A strong theme can remain `强主线/看继续走强` while the individual stock action is `不追高/等换手`.
+- For one-week or shorter trading requests, rank confirmed `强主线接力候选` ahead of `稳健低吸` and non-mainline TradingAgents-supported pullback names. TradingAgents can add confidence, but it must not make a non-mainline low-absorption candidate outrank a confirmed offensive mainline leader by itself.
 
 ## Chinese Trigger Coverage
 
@@ -99,7 +100,9 @@ Use these risk gates when converting the evidence stack into buyability and prob
 - Intraday fade gate: if a stock is up at least `4%` but closes in the lower 35% of its intraday range, or pulls back at least `2.5%` from the intraday high, mark `intraday_fade_risk`, lower the entry-action quality, and avoid chase labels. Do not downgrade the whole theme direction only because an individual leader is extended.
 - Weakening trend gate: if trend label is `weakening` and the stock is flat/down, cap upside probability at `52%`.
 - Chase-risk gate: if current-day gain is at least `7%`, or price is near the day high with gain at least `4%`, use `avoid chasing` unless there is a confirmed limit-up/leader continuation setup.
+- Strong-mainline continuation override: do not apply the ordinary chase-risk downgrade when all of these are true: theme rank is top 1-2, average theme change is at least `2%`, breadth is at least `65%`, theme成交额 is at least `50亿元`, the stock is liquid and on a normally tradable board, the trend is not weakening, there is no intraday fade, and the stock is a leader near/at涨停 or up at least `7%`. Mark it `mainline_continuation` / `主线核心接力候选`, keep it in the active buy pool, and give conditional entry rules instead of a blanket `不追高`.
 - TradingAgents adjustment: `agent_missing` or `agent_error` should lower confidence, but it must not by itself remove a stock from a confirmed strong-mainline buy pool. `Overweight/Buy` can add confidence; `Hold/Neutral` lowers confidence slightly; `Underweight/Sell` materially lowers confidence.
+- Probability floor for confirmed mainline continuation: use at least low-to-mid `60%` when TradingAgents is missing, and around `70%` when live evidence plus an `Overweight/Buy` TradingAgents overlay align. Keep the label as a calibrated scenario, not certainty.
 - Probability range: keep routine short-horizon upside probability inside a realistic band unless evidence is exceptional. Do not inflate percentages just because the user asks for direct recommendations.
 - Separate probability from action: a stock can have high continuation probability but still be `avoid chasing` if entry quality is poor.
 
@@ -108,7 +111,7 @@ Use these risk gates when converting the evidence stack into buyability and prob
 Use a two-layer decision model in every prediction:
 
 1. `板块方向评级`: judge whether the theme itself is `强主线`, `偏强可参与`, `中性轮动`, `弱修复`, or `回避`.
-2. `买入动作`: judge how to participate: `可买`, `回踩低吸`, `换手确认`, `只观察`, or `不参与`.
+2. `买入动作`: judge how to participate: `主线核心接力候选`, `可买`, `回踩低吸`, `换手确认`, `只观察`, or `不参与`.
 
 Do not let an entry-risk label erase a strong theme call. For example, AI算力/液冷 can be `强主线` even when 浪潮信息 is `不追高/等换手`.
 
@@ -125,6 +128,7 @@ For a `强主线` theme:
 - Put its leading buyable names ahead of defensive/steady sectors in the offensive ranking.
 - Use `主线可买池` or equivalent wording when the user asks what can be bought.
 - If a leader is extended, change the action to `换手确认` or `回踩低吸`; do not reduce the sector call to `观察`.
+- If an extended leader also meets the strong-mainline continuation override, mark it `主线核心接力候选` instead of ordinary `不追高/等换手`. Explain the executable setup: small/moderate高开 with board confirmation, controlled pullback with承接, or open-limit换手后回封; invalidation is炸板不能回封,跌回前收, or same-theme leaders weakening together.
 - Keep directional probability for leading names at or above the low-60% area unless there is intraday collapse, major negative news, broad-market break, or confirmed资金流 reversal.
 
 ## Cross-Sector Calibration
@@ -140,6 +144,7 @@ Before final ranking, compare all focus sectors on the same scale:
 Use separate buckets in the final answer:
 
 - `进攻主线`: strongest short-term theme candidates. These should not be hidden behind defensive sectors.
+- `强主线接力`: the highest-priority offensive subset. It ranks above `稳健低吸` even if a low-absorption name has a higher raw probability score from TradingAgents or trend stability.
 - `稳健低吸`: lower-volatility names with better entry but lower upside.
 - `观察/回避`: weak breadth, poor trend, missing catalyst, or bad entry quality.
 
@@ -232,6 +237,7 @@ Always print units next to numeric money and flow fields. Do not output bare val
 ## Recommendation Labels
 
 - `mainline buy pool`: theme is a confirmed strong short-term mainline; leading buyable names should appear before steady defensive sectors in the offensive ranking.
+- `mainline continuation`: confirmed strong-mainline leader suitable only for conditional接力. This ranks above low-absorption names, but entry must require opening strength, board共振, controlled pullback, or open-limit换手 confirmation.
 - `active focus`: theme is strong, stock action is constructive, flow/news do not contradict, and buyability is acceptable.
 - `wait for pullback`: stock is strong but already extended, near high, or showing big-deal selling.
 - `turnover confirmation`: stock or theme is strong but current price is too extended; only consider after sufficient换手, opened limit-up with support, or a controlled pullback.
@@ -243,6 +249,7 @@ Use clear Chinese action labels in final answers when helpful:
 
 - `可积极关注`
 - `主线可买池`
+- `主线核心接力候选`
 - `等回踩低吸`
 - `不追高/等换手`
 - `观察/暂不买`
